@@ -2,6 +2,8 @@
 #define THC_GENERIC_FILE "generic/THCTensorMathBlas.cu"
 #else
 
+#include <hip/hip_runtime.h>
+
 THC_API accreal
 THCTensor_(dot)(THCState *state, THCTensor *self, THCTensor *src)
 {
@@ -549,15 +551,18 @@ THCTensor_(baddbmm)(THCState *state, THCTensor *result, real beta, THCTensor *t,
   const long block = 512;
   const long grid = (num_batches + block - 1) / block;
 
-  createBatchGemmBuffer<<<grid, block, 0, THCState_getCurrentStream(state)>>>(
-    d_matrices1, THCTensor_(data)(state, batch1_), batch1_->stride[0],
-    num_batches);
-  createBatchGemmBuffer<<<grid, block, 0, THCState_getCurrentStream(state)>>>(
-    d_matrices2, THCTensor_(data)(state, batch2_), batch2_->stride[0],
-    num_batches);
-  createBatchGemmBuffer<<<grid, block, 0, THCState_getCurrentStream(state)>>>(
-    (const real**)d_result_matrices, THCTensor_(data)(state,result_),
-    result_->stride[0], num_batches);
+  hipLaunchKernelGGL(
+    (createBatchGemmBuffer), grid, block, 0, THCState_getCurrentStream(state),
+      d_matrices1, THCTensor_(data)(state, batch1_), batch1_->stride[0],
+      num_batches);
+  hipLaunchKernelGGL(
+    (createBatchGemmBuffer), grid, block, 0, THCState_getCurrentStream(state), 
+      d_matrices2, THCTensor_(data)(state, batch2_), batch2_->stride[0],
+      num_batches);
+  hipLaunchKernelGGL(
+    (createBatchGemmBuffer), grid, block, 0, THCState_getCurrentStream(state), 
+      (const real**)d_result_matrices, THCTensor_(data)(state,result_),
+      result_->stride[0], num_batches);
 
 #ifdef THC_REAL_IS_FLOAT
   THCudaBlas_SgemmBatched(
@@ -694,9 +699,10 @@ THC_API void THCTensor_(btrifact)(THCState *state, THCTensor *ra_, THCudaIntTens
 
   const long block = 512;
   const long grid = (num_batches + block - 1) / block;
-  createBatchGemmBuffer<<<grid, block, 0, THCState_getCurrentStream(state)>>>(
-    (const real**)d_result, THCTensor_(data)(state, ra__),
-    ra__->stride[0], num_batches);
+  hipLaunchKernelGGL(
+    (createBatchGemmBuffer), grid, block, 0, THCState_getCurrentStream(state), 
+      (const real**)d_result, THCTensor_(data)(state, ra__),
+      ra__->stride[0], num_batches);
 
   int *pivots_gpu = NULL;
   if (pivot) {
@@ -808,12 +814,14 @@ THC_API void THCTensor_(btrisolve)(THCState *state, THCTensor *rb_, THCTensor *b
 
   const long block = 512;
   const long grid = (num_batches + block - 1) / block;
-  createBatchGemmBuffer<<<grid, block, 0, THCState_getCurrentStream(state)>>>(
-    (const real**)d_result, THCTensor_(data)(state, rb__),
-    rb__->stride[0], num_batches);
-  createBatchGemmBuffer<<<grid, block, 0, THCState_getCurrentStream(state)>>>(
-    d_atf, THCTensor_(data)(state, atf_),
-    atf_->stride[0], num_batches);
+  hipLaunchKernelGGL(
+    (createBatchGemmBuffer), grid, block, 0, THCState_getCurrentStream(state), 
+      (const real**)d_result, THCTensor_(data)(state, rb__),
+      rb__->stride[0], num_batches);
+  hipLaunchKernelGGL(
+    (createBatchGemmBuffer), grid, block, 0, THCState_getCurrentStream(state), 
+      d_atf, THCTensor_(data)(state, atf_),
+      atf_->stride[0], num_batches);
 
   if (!THCudaIntTensor_isContiguous(state, pivots)) {
       THError("Error: pivots is not contiguous.");

@@ -6,6 +6,8 @@
 #include "THCReduceApplyUtils.cuh"
 #include "THCTensorRandom.cuh"
 
+#include <hip/hip_runtime.h>
+
 #include <thrust/functional.h>
 #include <curand.h>
 #include <curand_kernel.h>
@@ -72,8 +74,9 @@ __host__ void THCRandom_setRNGState(THCState* state, THByteTensor *rng_state)
 
   THCudaCheck(cudaMemcpy(gen->gen_states, THByteTensor_data(rng_state),
                          states_size, cudaMemcpyHostToDevice));
-  set_rngstate_kernel<<<1, MAX_NUM_BLOCKS, 0, THCState_getCurrentStream(state)>>>(
-      gen->gen_states, gen->kernel_params);
+  hipLaunchKernelGGL(
+    (set_rngstate_kernel), 1, MAX_NUM_BLOCKS, 0, THCState_getCurrentStream(state), 
+        gen->gen_states, gen->kernel_params);
   memcpy(&gen->initial_seed, THByteTensor_data(rng_state) + states_size, seed_size);
 }
 

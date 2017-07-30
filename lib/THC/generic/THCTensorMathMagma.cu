@@ -2,6 +2,8 @@
 #define THC_GENERIC_FILE "generic/THCTensorMathMagma.cu"
 #else
 
+#include <hip/hip_runtime.h>
+
 #if defined(THC_REAL_IS_FLOAT) || defined(THC_REAL_IS_DOUBLE)
 
 #ifdef USE_MAGMA
@@ -505,9 +507,11 @@ THC_API void THCTensor_(potri)(THCState *state, THCTensor *ra_, THCTensor *a, co
   dim3 blocks(std::min(DIVUP(len, 128), 65535));
   dim3 threads(128);
   if (uplo[0] == 'U') {
-    THCTensor_(copyUpperSymmetric)<<<blocks, threads, 0, stream>>>(input_data, n, len);
+    hipLaunchKernelGGL(
+      (THCTensor_(copyUpperSymmetric)), blocks, threads, 0, stream, input_data, n, len);
   } else {
-    THCTensor_(copyLowerSymmetric)<<<blocks, threads, 0, stream>>>(input_data, n, len);
+    hipLaunchKernelGGL(
+      (THCTensor_(copyLowerSymmetric)), blocks, threads, 0, stream, input_data, n, len);
   }
 
   THCTensor_(freeCopyTo)(state, input, ra_);

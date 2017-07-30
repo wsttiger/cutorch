@@ -1,4 +1,5 @@
 #include "THCSleep.h"
+#include <hip/hip_runtime.h>
 
 
 __global__ void spin_kernel(long long cycles)
@@ -16,6 +17,7 @@ THC_API void THC_sleep(THCState* state, long long cycles)
 {
   dim3 grid(1);
   dim3 block(1);
-  spin_kernel<<<grid, block, 0, THCState_getCurrentStream(state)>>>(cycles);
+  hipLaunchKernelGGL(
+    (spin_kernel), grid, block, 0, THCState_getCurrentStream(state), cycles);
   THCudaCheck(cudaGetLastError());
 }

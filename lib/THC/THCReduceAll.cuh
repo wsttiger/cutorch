@@ -1,6 +1,8 @@
 #ifndef THC_REDUCEALL_INC
 #define THC_REDUCEALL_INC
 
+#include <hip/hip_runtime.h>
+
 //
 // This file contains dimension reduction operation functions and
 // kernels that work on both contiguous and non-contiguous tensor
@@ -202,8 +204,9 @@ void callReduceAll(THCState* state,
     getPass1ReduceBlockGrid<InT, AccT>(state, totalElements, grid, block);
     size_t smemSize = block.x * sizeof(AccT);
 
-    kernelReduceAllPass1<ModifyOp, ReduceOp, ReduceAccOp, InT, AccT, IndexType, ADims>
-      <<<grid, block, smemSize, THCState_getCurrentStream(state)>>>(
+    hipLaunchKernelGGL(
+      (kernelReduceAllPass1<ModifyOp, ReduceOp, ReduceAccOp, InT, AccT, IndexType, ADims>),
+        grid, block, smemSize, THCState_getCurrentStream(state),
         in, (IndexType) totalElements, init, modifyOp, reduceOp, reduceAccOp,
         (AccT*) scratchSpace);
 
@@ -211,8 +214,9 @@ void callReduceAll(THCState* state,
     getPass2ReduceBlockGrid<InT, AccT>(state, totalElements, grid, block);
     smemSize = block.x * sizeof(AccT);
 
-    kernelReduceAllPass2<ReduceAccOp, AccT, IndexType>
-      <<<grid, block, smemSize, THCState_getCurrentStream(state)>>>(
+    hipLaunchKernelGGL(
+      (kernelReduceAllPass2<ReduceAccOp, AccT, IndexType>),
+        grid, block, smemSize, THCState_getCurrentStream(state),
         numPass1Blocks, init, reduceAccOp,
         (AccT*) scratchSpace, devOut);
 
@@ -223,9 +227,10 @@ void callReduceAll(THCState* state,
     getSinglePassReduceBlockGrid<InT, AccT>(totalElements, grid, block);
     size_t smemSize = block.x * sizeof(AccT);
 
-    kernelReduceAll<ModifyOp, ReduceOp, ReduceAccOp, InT, AccT, IndexType, ADims>
-      <<<grid, block, smemSize, THCState_getCurrentStream(state)>>>(
-        in, (IndexType) totalElements, init, modifyOp, reduceOp, reduceAccOp, devOut);
+    hipLaunchKernelGGL(
+      (kernelReduceAll<ModifyOp, ReduceOp, ReduceAccOp, InT, AccT, IndexType, ADims>),
+        grid, block, smemSize, THCState_getCurrentStream(state),
+          in, (IndexType) totalElements, init, modifyOp, reduceOp, reduceAccOp, devOut);
   }
 }
 

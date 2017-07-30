@@ -2,6 +2,8 @@
 #define THC_GENERIC_FILE "generic/THCTensorSort.cu"
 #else
 
+#include <hip/hip_runtime.h>
+
 // In alignment with default sort on a c++ map, this function
 // will permute key and value tensors identically, and
 // in such a way that the 'key' tensor is ordered numerically
@@ -55,8 +57,9 @@ THC_API void THCTensor_(sortKeyValueInplace)(THCState* state,
     dim3 block(blockSize);                                              \
                                                                         \
     if (dir) {                                                          \
-      bitonicSortKVInPlace<real, long, A, -1, GTComp<real>, TYPE, SIZE> \
-        <<<grid, block, 0, THCState_getCurrentStream(state)>>>(         \
+      hipLaunchKernelGGL(                                               \
+        (bitonicSortKVInPlace<real, long, A, -1, GTComp<real>, TYPE, SIZE>), \
+          grid, block, 0, THCState_getCurrentStream(state),             \
           keyInfo,                                                      \
           keySlices,                                                    \
           (TYPE) keySliceSize,                                          \
@@ -65,8 +68,9 @@ THC_API void THCTensor_(sortKeyValueInplace)(THCState* state,
           (TYPE) valueInfo.strides[collapseValueDim],                   \
           GTComp<real>());                                              \
     } else {                                                            \
-      bitonicSortKVInPlace<real, long, A, -1, LTComp<real>, TYPE, SIZE> \
-        <<<grid, block, 0, THCState_getCurrentStream(state)>>>(         \
+      hipLaunchKernelGGL(                                               \
+        (bitonicSortKVInPlace<real, long, A, -1, LTComp<real>, TYPE, SIZE>), \
+          grid, block, 0, THCState_getCurrentStream(state),             \
           keyInfo,                                                      \
           keySlices,                                                    \
           (TYPE) keySliceSize,                                          \

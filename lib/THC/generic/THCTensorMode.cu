@@ -2,6 +2,8 @@
 #define THC_GENERIC_FILE "generic/THCTensorMode.cu"
 #else
 
+#include <hip/hip_runtime.h>
+
 THC_API void THCTensor_(calculateMode)(THCState *state,
                                         THCTensor *values,
                                         THCudaLongTensor *indices,
@@ -232,8 +234,9 @@ THC_API void THCTensor_(mode)(THCState *state,
     dim3 blockSize(SIZE / 2); \
 \
     int memsize = (sizeof(real) * SIZE) + (2 * SIZE * sizeof(unsigned int)); \
-    computeMode<real, SIZE> \
-      <<<grid, blockSize, memsize, THCState_getCurrentStream(state)>>>( \
+    hipLaunchKernelGGL( \
+      (computeMode<real, SIZE>), \
+        grid, blockSize, memsize, THCState_getCurrentStream(state), \
         THCTensor_(data)(state, contiguous), tiValues, tiIndices, sliceSize); \
   }
 
