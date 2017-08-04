@@ -930,9 +930,9 @@ static int cutorch_isManagedPtr(lua_State *L)
     THError("Must receive a ptr cast as a number");
   }
   void* ptr = (void* )luaL_optinteger(L, 1, 0);
-  struct hipPointerAttribute_t attributes;
-  hipError_t res = cudaPointerGetAttributes(&attributes, ptr);
-  if (res == hipErrorInvalidValue) {
+  struct cudaPointerAttributes attributes;
+  cudaError_t res = cudaPointerGetAttributes(&attributes, ptr);
+  if (res == cudaErrorInvalidValue) {
     lua_pushboolean(L, 0);
   } else {
     THCudaCheck(res);

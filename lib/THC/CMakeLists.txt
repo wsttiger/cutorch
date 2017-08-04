@@ -159,12 +159,6 @@ ELSE()
   SET(CMAKE_C_FLAGS "-std=c99 ${CMAKE_C_FLAGS}")
 ENDIF()
 
-SET(CMAKE_C_FLAGS "-D__HIP_PLATFORM_NVCC__ ${CMAKE_C_FLAGS}")
-SET(CMAKE_CXX_FLAGS "-D__HIP_PLATFORM_NVCC__ ${CMAKE_CXX_FLAGS}")
-
-SET(CMAKE_C_FLAGS "-g -O0 ${CMAKE_C_FLAGS}")
-SET(CUDA_NVCC_FLAGS "-g -O0 ${CUDA_NVCC_FLAGS}")
-
 SET(src
     THCCachingAllocator.cpp
     THCCachingHostAllocator.cpp
@@ -203,6 +197,18 @@ SET(src-cuda
   THCTensorMode.cu
   )
 
+SET_PROPERTY(SOURCE 
+    THCCachingAllocator.cpp
+    THCCachingHostAllocator.cpp
+    THCGeneral.c
+    THCStorageCopy.c
+    THCStream.cpp
+    THCTensor.c
+    THCTensorCopy.c
+    THCTensorRandom.cpp
+    THCThreadLocal.c
+    APPEND PROPERTY COMPILE_DEFINITIONS "__HIP_PLATFORM_NVCC__")
+ 
 # loop over all types
 foreach(THC_TYPE Byte Char Short Int Long Half Float Double)
    # loop over files which need to be split between types (because of long compile times)

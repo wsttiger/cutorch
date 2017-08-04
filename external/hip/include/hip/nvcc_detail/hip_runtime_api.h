@@ -770,12 +770,12 @@ inline static hipError_t hipMemcpyPeerAsync ( void* dst, int  dstDevice, const v
 }
 
 // Profile APIs:
-inline hipError_t hipProfilerStart()
+inline static hipError_t hipProfilerStart()
 {
     return hipCUDAErrorTohipError(cudaProfilerStart());
 }
 
-inline hipError_t hipProfilerStop()
+inline static hipError_t hipProfilerStop()
 {
     return hipCUDAErrorTohipError(cudaProfilerStop());
 }
