@@ -154,7 +154,7 @@ THC_API void THCTensor_(topk)(THCState* state,
     }
   }
 
-  THCudaCheck(cudaGetLastError());
+  THCudaCheck(hipGetLastError());
 }
 
 #endif // THC_GENERIC_FILE

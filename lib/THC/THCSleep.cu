@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 #include "THCSleep.h"
 #include <hip/hip_runtime.h>
 
@@ -19,5 +20,5 @@ THC_API void THC_sleep(THCState* state, long long cycles)
   dim3 block(1);
   hipLaunchKernelGGL(
     (spin_kernel), grid, block, 0, THCState_getCurrentStream(state), cycles);
-  THCudaCheck(cudaGetLastError());
+  THCudaCheck(hipGetLastError());
 }

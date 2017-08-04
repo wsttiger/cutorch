@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 #ifndef THC_GENERIC_FILE
 #define THC_GENERIC_FILE "generic/THCTensorMathBlas.cu"
 #else
@@ -429,7 +430,7 @@ THCTensor_(addbmm)(THCState *state, THCTensor *result, real beta, THCTensor *t,
 
 __global__ void createBatchGemmBuffer(const real** buffer, real* data,
                                       long stride, long num_batches) {
-  const long idx = blockIdx.x * blockDim.x + threadIdx.x;
+  const long idx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
   if (idx < num_batches) {
     buffer[idx] = data + idx * stride;
   }

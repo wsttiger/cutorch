@@ -60,19 +60,19 @@ void THCTensor_(gather)(THCState* state, THCTensor *tensor,
     switch (indexInfo.dims) {
       case 1:
         RUN(unsigned int, 1, real);
-        THCudaCheck(cudaGetLastError());
+        THCudaCheck(hipGetLastError());
         break;
       case 2:
         RUN(unsigned int, 2, real);
-        THCudaCheck(cudaGetLastError());
+        THCudaCheck(hipGetLastError());
         break;
       case 3:
         RUN(unsigned int, 3, real);
-        THCudaCheck(cudaGetLastError());
+        THCudaCheck(hipGetLastError());
         break;
       default:
         RUN(unsigned int, -1, real);
-        THCudaCheck(cudaGetLastError());
+        THCudaCheck(hipGetLastError());
         break;
     }
   } else {
@@ -83,7 +83,7 @@ void THCTensor_(gather)(THCState* state, THCTensor *tensor,
     TensorInfo<long, unsigned long> indexInfo =
       getTensorInfo<THCudaLongTensor, unsigned long>(state, index);
     RUN(unsigned long, -1, real);
-    THCudaCheck(cudaGetLastError());
+    THCudaCheck(hipGetLastError());
   }
 
   if (oldTensor) {
@@ -91,7 +91,7 @@ void THCTensor_(gather)(THCState* state, THCTensor *tensor,
     THCTensor_(free)(state, tensor);
     tensor = oldTensor;
   }
-  THCudaCheck(cudaGetLastError());
+  THCudaCheck(hipGetLastError());
 }
 
 #undef RUN
@@ -180,7 +180,7 @@ void THCTensor_(scatter)(THCState* state, THCTensor *tensor, int dim, THCudaLong
     THCTensor_(free)(state, tensor);
     tensor = oldTensor;
   }
-  THCudaCheck(cudaGetLastError());
+  THCudaCheck(hipGetLastError());
 }
 
 #undef RUN
@@ -268,7 +268,7 @@ void THCTensor_(scatterAdd)(THCState* state, THCTensor *tensor, int dim, THCudaL
     THCTensor_(free)(state, tensor);
     tensor = oldTensor;
   }
-  THCudaCheck(cudaGetLastError());
+  THCudaCheck(hipGetLastError());
 }
 
 #undef RUN
@@ -349,7 +349,7 @@ THCTensor_(scatterFill)(THCState* state, THCTensor *tensor,
     THCTensor_(free)(state, tensor);
     tensor = oldTensor;
   }
-  THCudaCheck(cudaGetLastError());
+  THCudaCheck(hipGetLastError());
 }
 
 #undef RUN
